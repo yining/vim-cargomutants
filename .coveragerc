@@ -1,0 +1,7 @@
+[run]
+plugins = covimerage
+data_file = .coverage_covimerage
+
+[report]
+include = autoload/*,plugin/*,after/*,ftplugin/*,ftdetect/*,syntax/*,test/*
+omit = test/*.vimrc,tmp/*

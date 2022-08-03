@@ -1,0 +1,69 @@
+---
+cmdargs:
+
+  format: '{file_path}:{line_number}:{column_number}: [{severity}]{description}|{policy_name}'
+
+  # checking more strictly
+  severity: style_problem
+
+  # enable coloring
+  color: true
+
+  # Enable Neovim syntax
+  env:
+    neovim: true
+
+policies:
+  ProhibitAutocmdWithNoGroup:
+    enabled: true
+
+  # use the corresponding script function corresponding to the user command
+  ProhibitCommandRelyOnUser:
+    enabled: true
+
+  ProhibitCommandWithUnintendedSideEffect:
+    enabled: true
+
+  # scriptencoding always after encoding
+  ProhibitEncodingOptionAfterScriptEncoding:
+    enabled: true
+
+  ProhibitEqualTildeOperator:
+    enabled: true
+
+  # always use scope prefix (eg. a, s, l, g)
+  ProhibitImplicitScopeBuiltinVariable:
+    enabled: true
+
+  # if contains unicode outside ascii, always set script encoding
+  ProhibitMissingScriptEncoding:
+    enable: true
+
+  # in autoload/ always use ! and abort
+  ProhibitNoAbortFunction:
+    enable: true
+
+  ProhibitSetNoCompatible:
+    enabled: true
+
+  # use single quote as much as possible
+  ProhibitUnnecessaryDoubleQuote:
+    enable: true
+
+  ProhibitUnusedVariable:
+    enable: true
+
+  ProhibitUsingUndeclaredVariable:
+    enable: true
+
+  #
+  # Style
+  #
+
+  ProhibitAbbreviationOption:
+    enabled: true
+
+  ProhibitImplicitScopeVariable:
+    enabled: true
+
+# vim:set ft=yaml sw=2 sts=2:

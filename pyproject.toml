@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "cargomutants"
+version = "0.1.0"
+description = "this is not a python project per se. it's used to setup covimerage for vim coverage highlight"
+authors = ["Zhang Yining <zhang.yining@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+
+[tool.poetry.dev-dependencies]
+covimerage = "^0.2.2"
+vim-vint = "^0.3.7"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

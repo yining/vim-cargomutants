@@ -1,0 +1,77 @@
+name: CI
+on: [push, pull_request]
+
+jobs:
+  unit-tests:
+    name: Unit tests
+    strategy:
+      matrix:
+        # os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-latest]
+        neovim: [false, true]
+        # os: [ubuntu-latest, macos-latest]
+        version: [v8.2.0000, stable, nightly, v0.6.0]
+        exclude:
+          # pin to support Vim >= v8.2.0
+          # try to support nvim >= 0.6.0 and neovim nightly is unstable
+          # note: vim stable on macos >= v8.2.0, on ubuntu-latest still v8.1.*
+          - neovim: true
+            version: nightly
+          - neovim: true
+            version: v8.2.0000
+          - neovim: false
+            version: v0.6.0
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Checkout thinca/vim-themis
+        uses: actions/checkout@v2
+        with:
+          repository: thinca/vim-themis
+          path: vim-themis
+      - name: Checkout junegunn/vader.vim
+        uses: actions/checkout@v2
+        with:
+          repository: junegunn/vader.vim
+          path: vader.vim
+
+      - name: Install Vim or Neovim
+        uses: rhysd/action-setup-vim@v1
+        id: vim
+        with:
+          version: ${{ matrix.version }}
+          neovim: ${{ matrix.neovim }}
+
+      - name: Report Vim Version
+        env:
+          VIM_BIN: ${{ steps.vim.outputs.executable }}
+        run: |
+          $VIM_BIN --version
+      - name: Unit-tests with themis
+        env:
+          THEMIS_VIM: ${{ steps.vim.outputs.executable }}
+          PROFILE_LOG: profile.txt
+        run: |
+          echo "${THEMIS_VIM}"
+          if [ -n "$(find test -type f -name '*.vim')" ]; then
+            ./vim-themis/bin/themis --recursive --reporter tap test
+          fi
+      - name: Unit-tests with vader
+        env:
+          VIM_BIN: ${{ steps.vim.outputs.executable }}
+        run: |
+          echo "${VIM_BIN}"
+          if [ -n "$(find test -type f -name '*.vader')" ]; then
+            $VIM_BIN -E -s -N -u test/ci.vimrc -c 'Vader! test/**/*.vader'
+          fi
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v1
+      - run: pip install vim-vint
+      - run: vint --style-problem --verbose --enable-neovim .

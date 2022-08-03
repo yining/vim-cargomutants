@@ -1,0 +1,35 @@
+" this vimrc is used for testing with Vader
+
+set nobackup
+set noswapfile
+
+"
+" Get an isolated Vim environment, with only Vader and the plugin to test.
+
+let s:repo_root = fnamemodify(expand('<sfile>'), ':h:h')
+
+set packpath=
+" set runtimepath=
+" set runtimepath+=~/.vim/bundle/vader.vim
+" set runtimepath+=~/.vim/bundle/vim-textobj-user
+" set runtimepath+=~/.vim/bundle/vim-textobj-function
+" set runtimepath+=~/.vim/bundle/yadk
+
+execute 'set runtimepath+=' . $VIM_HOME . '/bundle/vader.vim'
+execute 'set runtimepath+=' . $VIM_HOME . '/bundle/vim-textobj-user'
+execute 'set runtimepath+=' . $VIM_HOME . '/bundle/vim-textobj-function-vim-extra/after'
+execute 'set runtimepath+=' . $VIM_HOME . '/bundle/yadk'
+
+execute 'set runtimepath+=' . s:repo_root
+execute 'set runtimepath+=' . s:repo_root . '/after'
+
+if $VADER_PROFILE !=# ''
+  execute	'profile' 'start' $VADER_PROFILE
+  execute 'profile! file ' . s:repo_root . '/*'
+endif
+
+filetype on
+filetype plugin on
+filetype indent on
+syntax enable
+
