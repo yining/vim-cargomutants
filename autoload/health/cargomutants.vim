@@ -25,6 +25,12 @@ function! health#cargomutants#check() abort
           \  'also check and set g:cargomutants_cargo_bin'])
   endif
 
+  let l:cargomutants_ale_enabled = get(g:, 'cargomutants_ale_enabled', 0)
+  let l:ale_enabled = get(g:, 'ale_enabled', 0)
+  if !l:ale_enabled && l:cargomutants_ale_enabled
+    call health#report_error(printf('ALE seems disabled (g:ale_enabled==0), yet g:cargomutants_ale_enabled == 1'))
+  endif
+
 endfunction
 
 
