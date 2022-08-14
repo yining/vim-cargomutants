@@ -11,6 +11,7 @@
 
 ## Tests
 
+- integration with `ALE`
 
 ## Featrues
 
@@ -19,15 +20,15 @@
     - [ ] command to list only for current buffer
     - [ ] command to list only for given glob?
 - [ ] support `cargo workspace`
-- [ ] integrate with `ALE` as a linter
-    - [x] check if `ALE` is installed
-    - [x] check if `ALE` is installed in `healthcheck`
+- integrate with `ALE` as a linter
+    - [ ] comply with `ALE` API when running `CargoMutantsRun`
+    - [ ] show diff keymap should work with `ALE` list
     - [ ] configuration vars
-        - [x] if integrated with `ALE`
         - [ ] `other_source` name for `cargomutants` in `ALE`
-    - [ ] follow `ALE` convention, only list uncaught mutants for file in the current buffer
+    - [x] follow `ALE` convention, only list uncaught mutants for file in the current buffer
 - [x] print stats
+    - [ ] better format of stats
 - Not Sure
-    - [ ] option to ignore `Uviable` cases
-    - [ ] option to use `quickfix` window instead of `loclist`
+    - [ ] option to ignore `Uviable` cases (?)
+    - [ ] option to use `quickfix` window instead of `loclist` (?)
 

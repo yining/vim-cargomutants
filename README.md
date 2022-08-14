@@ -1,3 +1,4 @@
+<!--- doclinks: ignore -->
 [![CI](../../actions/workflows/ci.yml/badge.svg)](../../actions/workflows/ci.yml)
 
 # README
