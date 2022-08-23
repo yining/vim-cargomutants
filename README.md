@@ -3,69 +3,112 @@
 
 # README
 
-`cargo-mutants` is a `Vim` plugin that supports [`cargo-mutants`](https://github.com/sourcefrog/cargo-mutants ), a mutation testing tool for `Rust`.
+`vim-cargomutants` is a `Vim` plugin that supports [`cargo-mutants`](https://github.com/sourcefrog/cargo-mutants ), a mutation testing tool for `Rust`.
 
-The main purpose of this plugin is to access mutation test results from inside `Vim`.
+Use this plugin to:
+
+- access `cargo-mutants` results (in location list) without leaving `Vim`
+- optionally, it can populate results to and rendered by [`ALE`](https://github.com/dense-analysis/ale);
+- view the diff of a mutation;
+- run `cargo-mutants` directly from inside `Vim`;
 
 ## Usage
 
-Run `cargo-mutants` from within `Vim`
-
-`CargoMutantsRun`
-
-List results
+Assume `cargo-mutants` was already run and results generated, now open a source file in `Vim` and execute the command:
 
 `CargoMutantsList`
 
-Show stats of results
+It will populate uncaught mutations, if any, of that file in the location list.
 
-`CargoMutantsStats`: show stats of `cargo-mutants` results.
+To populate all uncaught mutations in the project, use `CargoMutantsListAll`.
+
+To view the diff of a mutation: `CargoMutantsViewDiff` will open a diff view of the selected mutation.
+
+There is also an internal mapping: `cargomutants_diff`, if you want to add a keyboard shortcut, in this example, `<leader>md`, in the location list to open the diff of a selected uncaught mutation:
 
 ```vim
-autocmd Filetype qf nmap <silent> <buffer> <leader>md <CR><Plug>(cargomutants_diff)
+augroup cargomutants
+  autocmd!
+  autocmd Filetype qf
+        \ nmap <silent> <buffer> <leader>md <CR><Plug>(cargomutants_diff)
+augroup END
 ```
 
-Example workflow 1:
+> **Note**
+> the `<CR>` before the invocation of internal mapping is to move cursor to the corresponding line first.
 
-1. run `CargoMutantsRunAll`
-1. run `CargoMutantsListAll`
-1. jump to location list, select an entry and `<leader>md` to view the diff of the mutant
+To show stats of results of mutation tests: `CargoMutantsStats` will print one line of stats of last run of `cargo-mutants`.
 
-Example workflow 2:
+There are two commands to run `cargo-mutants` from within `Vim`:
 
-1. run `CargoMutantsRunAll`
-1. run `CargoMutantsList`, it will only list mutantions of current buffer
+- `CargoMutantsRunBuffer` to only run for the file in the current buffer, i.e. with `--file` option set to the file.
+- `CargoMutantsRunAll` to run all mutation tests for the project.
 
-Example workflow 3 (integrated with `ALE`):
-
-1. run `CargoMutantsRunAll`
-1. uncaught mutants will be listed in the `ALE` linter result list
+after finish running, the uncaught mutations, if any, will be populated in the location list.
 
 ## Configuration
 
-```vim
-let g:cargomutants_ale_enabled = 1 "default is: 0
-```
-
-also add `cargomutants` to ale linter for `rust`
+To set the path to `cargo` if it's not in the `$PATH`:
 
 ```vim
-let g:ale_linters['rust'] += ['cargomutants']
+let g:cargomutants_cargo_bin = '/path/to/cargo'  "default: 'cargo'
 ```
 
+To set `cargo-mutants` command line options:
 
 ```vim
-let g:cargomutants_cargo_bin = '/path/to/cargo'
+let g:cargomutants_cmd_opts = '--timeout 10 --jobs 4'  "default ''
 ```
+
+> **Warning**
+> if you want `cargo-mutants`'s output directory other than default, do not set in `g:cargomutants_cmd_opts`, see below.
+
+To set the `cargo-mutants` output directory:
+
+```vim
+let g:cargomutants_output_dir = 'rel/path/to/dir' "default: ''
+```
+
+> **Note**
+> Do not set `--output`/`-o` in `g:cargomutants_cmd_opts`, as this configuration value is also used to to locate the `outcomes.json` file.
+
+To set error type in the location list for each type of mutation result:
+
+```vim
+let g:cargomutants_error_type_map = {
+      \ 'missed': 'E',
+      \ 'unviable': v:null,
+      \ 'timeout': 'I',
+      \ }
+```
+
+Default error type for `missed` is `E`, and `W` for `unviable` and `timeout`.
+
+To hide a type of mutation, set the value to `v:null`, so in the code above, only `missed` and `timeout` mutants will be listed in the location list.
+
+### ALE Integration
+
+To enable integration with ALE:
+
+```vim
+let g:cargomutants_ale_enabled = 1 "default: 0
+```
+
+This will add `cargo-mutants` as a linter for `rust` with the source name of `'cargomutants'`
+
+To change the source name to, for example, `'mutants'`:
+
+```vim
+let g:cargomutants_ale_source_name = 'mutants' "default: 'cargomutants'
+```
+
 
 ## Installation
 
-Install as any normal `Vim`/`Neovim` plugin with your preferred way.
+Install as any normal `Vim`/`Neovim` plugin with your preferred plugin manager.
 
 ## Acknowledgement
 
-- [`cargo-mutants` the tool itself](https://github.com/sourcefrog/cargo-mutants )
-- [vader.vim](https://github.com/junegunn/vader.vim)
 - [vim-themis](https://github.com/thinca/vim-themis )
 - [rhysd/action-setup-vim](https://github.com/rhysd/action-setup-vim) for GitHub Action to setup `Vim`/`Neovim`.
 

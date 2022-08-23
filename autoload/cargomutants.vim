@@ -2,44 +2,38 @@ let s:saved_cpo = &cpoptions
 set cpoptions&vim
 
 
-function! cargomutants#GetListOfUncaughtMutants()abort
-  let b:cargomutants_root_dir = cargomutants#utils#find_proj_root_dir()
-  let l:json_file = join([b:cargomutants_root_dir, 'mutants.out', 'outcomes.json'], '/')
-  if !filereadable(l:json_file)
-    " No cargo-mutants outcomes.json found
-    return
-  endif
-  let l:json = json_decode(join(readfile(l:json_file), ''))
+function! cargomutants#get_mutant_list()abort
+  let l:json = cargomutants#outcomes#read_outcomes_json()
   let l:mutants = cargomutants#outcomes#build_uncaught_mutants_list(l:json)
   return l:mutants
 endfunction
 
 
-function! cargomutants#ListUncaughtMutants(...)abort
-  let l:mutants = cargomutants#GetListOfUncaughtMutants()
-  let l:file = expand('%:p')
+function! cargomutants#list_mutants(...)abort
+  let l:mutants = cargomutants#get_mutant_list()
+  let l:file = ''
   if a:0 > 0
-    let l:file = fnamemodify(a:1, '%:p')
+    if a:1 != v:null
+      let l:file = fnamemodify(a:1, ':p')
+    endif
+  else
+    let l:file = expand('%:p')
   endif
-  let l:mutants = cargomutants#FilterMutantsOfFile(l:mutants, l:file)
-  if len(l:mutants) > 0
-    call setloclist(0, l:mutants)
-    lopen
+  if !empty(l:file)
+    let l:mutants = cargomutants#filter_mutants_of_file(l:mutants, l:file)
   endif
-endfunction
-
-
-function! cargomutants#ListUncaughtMutantsAll()abort
-  let l:mutants = cargomutants#GetListOfUncaughtMutants()
   if len(l:mutants) > 0
-    call setloclist(0, l:mutants)
+    let l:buf = bufname('%')
+    call setloclist(0, l:mutants, 'r')
     lopen
+    " set focus back to window
+    exec bufwinnr(l:buf) . 'wincmd w'
   endif
 endfunction
 
 
 " filters list of mutants that only for given file
-function! cargomutants#FilterMutantsOfFile(mutants, file) abort
+function! cargomutants#filter_mutants_of_file(mutants, file) abort
   let l:fullpath = fnamemodify(a:file, ':p')
   let l:filtered = filter(a:mutants, {k, v -> v.filename ==# l:fullpath})
   return l:filtered
@@ -47,16 +41,27 @@ endfunction
 
 
 " Print cargomutants stats from outcomes
-function! cargomutants#ShowStats() abort
+function! cargomutants#show_stats() abort
   let l:stats = cargomutants#outcomes#get_stats()
-  " TODO: better display output (ordered, labels, etc.)
-  " TODO: some useful calculated stats, e.g. percentage
-  echom l:stats
+  if empty(l:stats)
+    echom 'No mutation stats found (most likely an error)'
+  endif
+  if l:stats.total == 0
+    echom 'Mutation Total: 0'
+  else
+    let l:f = 'Mutation Total: %d, Missed: %d(%.3s%%), Caught: %d(%.3s%%), Unviable: %d(%.3s%%), Timeout: %d(%.3s%%)'
+    echom printf(l:f, l:stats.total,
+          \ l:stats.missed, l:stats.missed*100/l:stats.total,
+          \ l:stats.caught, l:stats.caught*100/l:stats.total,
+          \ l:stats.unviable, l:stats.unviable*100/l:stats.total,
+          \ l:stats.timeout, l:stats.timeout*100/l:stats.total
+          \)
+  endif
 endfunction
 
 " ----------------------------------------------------------------------
 
-function! cargomutants#ViewMutantDiff() abort
+function! cargomutants#view_mutant_diff() abort
   let b:cargomutants_root_dir = cargomutants#utils#find_proj_root_dir()
 
   let l:loclist_items = getloclist(0)
@@ -83,12 +88,13 @@ function! cargomutants#ViewMutantDiff() abort
 
   let l:line = l:item['lnum']
   let l:text = l:item['text']
-  let l:outcome_key = cargomutants#outcomes#BuildOutcomeKey(l:rel_path, l:line, l:text)
+  let l:outcome_key = cargomutants#outcomes#build_outcome_key(l:rel_path, l:line, l:text)
   " echom l:outcome_key
-  let l:mut_diff_file = cargomutants#outcomes#GetLogFilePath(l:outcome_key)
-  " echom 'mut_diff_file:' . l:mut_diff_file
+  let l:mut_diff_file = cargomutants#outcomes#get_logfile_path(l:outcome_key)
 
-  call win_execute(l:wins[0], 'vertical diffpatch ' . l:mut_diff_file)
+  if !empty(l:mut_diff_file)
+    silent! call win_execute(l:wins[0], 'vertical diffpatch ' . l:mut_diff_file)
+  endif
 
 endfunction
 

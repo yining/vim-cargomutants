@@ -1,4 +1,7 @@
-let s:suite = themis#suite('cargomutants test suite - ale')
+let s:saved_cpo = &cpoptions
+set cpoptions&vim
+
+let s:suite = themis#suite('ale related')
 let s:assert = themis#helper('assert')
 
 function! s:suite.before_each()
@@ -46,3 +49,6 @@ function! s:suite.test_ale_integration_disabled()
   let l:expected = 0
   call s:assert.equals(l:got, l:expected)
 endfunction
+
+let &cpoptions = s:saved_cpo
+unlet s:saved_cpo
