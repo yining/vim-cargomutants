@@ -60,18 +60,6 @@ To set `cargo-mutants` command line options:
 let g:cargomutants_cmd_opts = '--timeout 10 --jobs 4'  "default ''
 ```
 
-> **Warning**
-> if you want `cargo-mutants`'s output directory other than default, do not set in `g:cargomutants_cmd_opts`, see below.
-
-To set the `cargo-mutants` output directory:
-
-```vim
-let g:cargomutants_output_dir = 'rel/path/to/dir' "default: ''
-```
-
-> **Note**
-> Do not set `--output`/`-o` in `g:cargomutants_cmd_opts`, as this configuration value is also used to to locate the `outcomes.json` file.
-
 To set error type in the location list for each type of mutation result:
 
 ```vim

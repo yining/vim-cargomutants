@@ -2,20 +2,32 @@ let s:saved_cpo = &cpoptions
 set cpoptions&vim
 
 
-function! s:locate_outcomes_file(root_dir) abort
-  let l:output_dir = get(g:, 'cargomutants_output_dir', '')
-  let l:json_file = join([
-        \ a:root_dir,
-        \ l:output_dir,
-        \ 'mutants.out',
-        \ 'outcomes.json'], '/')
-  return l:json_file
+function! s:locate_outcomes_file(root_dir, ...) abort
+  let l:opts = get(g:, 'cargomutants_cmd_opts', '')
+  if a:0 > 0
+    let l:opts = a:1
+  endif
+  let l:output_dir = cargomutants#utils#output_dir_from_opts(l:opts)
+  if empty(l:output_dir)
+    return join([
+          \ a:root_dir,
+          \ 'mutants.out',
+          \ 'outcomes.json'], '/')
+  else
+    return join([
+          \ a:root_dir,
+          \ trim(l:output_dir, '"'),
+          \ 'mutants.out',
+          \ 'outcomes.json'], '/')
+  endif
 endfunction
 
 
 function! cargomutants#outcomes#read_outcomes_json() abort
   let b:cargomutants_root_dir = cargomutants#utils#find_proj_root_dir()
-  let l:json_file = s:locate_outcomes_file(b:cargomutants_root_dir )
+  let l:json_file = s:locate_outcomes_file(
+        \ b:cargomutants_root_dir, g:cargomutants_cmd_opts )
+  let l:json_file = expand(l:json_file)
   if !filereadable(l:json_file)
     " outcomes.json not found
     echom printf('outcomes.json (%s) file not found.', l:json_file)
@@ -156,7 +168,8 @@ endfunction
 
 function! cargomutants#outcomes#get_stats()abort
   let b:cargomutants_root_dir = cargomutants#utils#find_proj_root_dir()
-  let l:json_file = s:locate_outcomes_file(b:cargomutants_root_dir )
+  let l:json_file = s:locate_outcomes_file(
+        \ b:cargomutants_root_dir, g:cargomutants_cmd_opts )
   if !filereadable(l:json_file)
     " No cargo-mutants outcomes.json found
     return {}

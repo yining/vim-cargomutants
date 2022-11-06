@@ -62,18 +62,16 @@ endfunction
 function! s:build_command(proj_root, file) abort
   let l:cargo_bin   = get(g:, 'cargomutants_cargo_bin', 'cargo')
   let l:opts        = get(g:, 'cargomutants_cmd_opts', '')
-  let l:output_dir  = get(g:, 'cargomutants_output_dir', '')
-  let l:output_opt  = l:output_dir ==# '' ? '' : '--output '.l:output_dir
 
   if !empty(a:file)
     let l:cmd = ['sh', '-c',
-          \ printf('cd %s && %s mutants %s %s --dir %s --file %s',
-          \ a:proj_root, l:cargo_bin, l:opts, l:output_opt, a:proj_root, a:file)
+          \ printf('cd %s && %s mutants %s --dir %s --file %s',
+          \ a:proj_root, l:cargo_bin, l:opts, a:proj_root, a:file)
           \ ]
   else
     let l:cmd = ['sh', '-c',
-          \ printf('cd %s && %s mutants %s %s --dir %s',
-          \ a:proj_root, l:cargo_bin, l:opts, l:output_opt, a:proj_root)
+          \ printf('cd %s && %s mutants %s --dir %s',
+          \ a:proj_root, l:cargo_bin, l:opts, a:proj_root)
           \ ]
   endif
 

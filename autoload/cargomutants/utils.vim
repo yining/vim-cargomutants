@@ -22,32 +22,31 @@ function! cargomutants#utils#find_proj_root_dir(...) abort
 endfunction
 
 
-" " use `globpath` instead of `finddir` and `findfile`, it has advantages:
-" " - one less func call (we do not care if markers are file or dir, right?)
-" " - finddir/findfile also requires `+file_in_path`
-" " this func and s:current() are borrowed and simplified from `vim-rooter`
-" function! cargomutants#utils#find_proj_root_dir_old(...) abort
-"   let l:dir = a:0 > 0 ? a:1 : s:current()
-"   while 1
-"     " the curly braces { and } is to avoid slowdown when checking
-"     " directory name containing them (e.g. in cookiecutter projects
-"     if !empty(globpath(escape(l:dir, '?*[]{}'), 'Cargo.toml', 1))
-"       " if !empty(globpath(shellescape(l:dir, '?*[]{}'), l:marker, 1))
-"       return l:dir
-"     endif
-"     let [l:current, l:dir] = [l:dir, fnamemodify(l:dir, ':h')]
-"     if l:current == l:dir | break | endif
-"   endwhile
-"   return ''
-" endfunction
-
-
 " Returns full path of directory of current file name (which may be a directory).
 function! s:current() abort
   let l:fn = expand('%:p', 1)
   if l:fn =~# 'NERD_tree_\d\+$' | let l:fn = b:NERDTree.root.path.str().'/' | endif
   if empty(l:fn) | return getcwd() | endif  " opening vim without a file
   return fnamemodify(l:fn, ':h')
+endfunction
+
+" returns string value of '--output'/'-o' option if given
+" returns v:null if not found
+function! cargomutants#utils#output_dir_from_opts(opts) abort
+  let l:regex_output  = '\v(^|\s)\s*(-o\s|--output(\=|\s)\s*)'
+  let l:regex_opt     = '\v\s-(\a?($|\s)|-\a(\a|\d\-)+(\=|\s))'
+  let l:match_idx1 = matchend(a:opts, l:regex_output)
+  if l:match_idx1 < 0
+    return v:null
+  endif
+  let l:match_idx2 = match(a:opts, l:regex_opt, l:match_idx1)
+  " echom printf('%s | %s', l:match_idx1, l:match_idx2)
+  if l:match_idx2 >= 0
+    let l:x = a:opts[l:match_idx1 : l:match_idx2]
+  else
+    let l:x = a:opts[l:match_idx1 :]
+  endif
+  return trim(l:x)
 endfunction
 
 
