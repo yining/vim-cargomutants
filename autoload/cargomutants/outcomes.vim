@@ -2,6 +2,9 @@ let s:saved_cpo = &cpoptions
 set cpoptions&vim
 
 
+" get the path to `outcomes.json` file with the given project root dir
+" if options string is given, it will be checked for `output` dir, and
+" if specified it will use that to construct the path to `outcomes.json`
 function! s:locate_outcomes_file(root_dir, ...) abort
   let l:opts = get(g:, 'cargomutants_cmd_opts', '')
   if a:0 > 0
@@ -25,8 +28,12 @@ endfunction
 
 function! cargomutants#outcomes#read_outcomes_json() abort
   let b:cargomutants_root_dir = cargomutants#utils#find_proj_root_dir()
+  if empty(b:cargomutants_root_dir)
+    echoe 'Cargo project root not found'
+    return v:null
+  endif
   let l:json_file = s:locate_outcomes_file(
-        \ b:cargomutants_root_dir, g:cargomutants_cmd_opts )
+        \ b:cargomutants_root_dir, get(g:, 'cargomutants_cmd_opts', ''))
   let l:json_file = expand(l:json_file)
   if !filereadable(l:json_file)
     " outcomes.json not found

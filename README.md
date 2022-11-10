@@ -22,9 +22,9 @@ It will populate uncaught mutations, if any, of that file in the location list.
 
 To populate all uncaught mutations in the project, use `CargoMutantsListAll`.
 
-To view the diff of a mutation: `CargoMutantsViewDiff` will open a diff view of the selected mutation.
+To view the diff of a mutation in the list: `CargoMutantsViewDiff` opens a diff view of the selected mutation.
 
-There is also an internal mapping: `cargomutants_diff`, if you want to add a keyboard shortcut, in this example, `<leader>md`, in the location list to open the diff of a selected uncaught mutation:
+There is also an internal mapping: `<Plug>(cargomutants_diff)`, if you want to add a keyboard shortcut, for example, `<leader>md`, in the location list to open the diff of a selected uncaught mutation:
 
 ```vim
 augroup cargomutants
@@ -60,6 +60,9 @@ To set `cargo-mutants` command line options:
 let g:cargomutants_cmd_opts = '--timeout 10 --jobs 4'  "default ''
 ```
 
+> **Note:**
+> Because this plugin reads `outcomes.json` for test results and stats, it tries to read the `--output`/`-o` option value, if given, to construct the path to `outcomes.json`. It uses some simple regexes to extract the option value, so if you have a custom output directory, try to have the name of output directory simple (e.g. names not containing substrings that might look like an option flag)
+
 To set error type in the location list for each type of mutation result:
 
 ```vim
@@ -82,7 +85,7 @@ To enable integration with ALE:
 let g:cargomutants_ale_enabled = 1 "default: 0
 ```
 
-This will add `cargo-mutants` as a linter for `rust` with the source name of `'cargomutants'`
+This will add `cargo-mutants` as a linter for `rust` with the source name as `'cargomutants'`
 
 To change the source name to, for example, `'mutants'`:
 
@@ -90,6 +93,8 @@ To change the source name to, for example, `'mutants'`:
 let g:cargomutants_ale_source_name = 'mutants' "default: 'cargomutants'
 ```
 
+> **Note:**
+> Because `cargo-mutants` is much more expensive to run than normal code linters, this plugin will not run the `cargo-mutants` command every time `ALE` runs linters for the buffer. It only extracts and lists mutation results in the ALE linter result list. To run `cargo-mutants`, you need to explicitly execute commands(see above) or from terminal.
 
 ## Installation
 
@@ -97,6 +102,6 @@ Install as any normal `Vim`/`Neovim` plugin with your preferred plugin manager.
 
 ## Acknowledgement
 
-- [vim-themis](https://github.com/thinca/vim-themis )
-- [rhysd/action-setup-vim](https://github.com/rhysd/action-setup-vim) for GitHub Action to setup `Vim`/`Neovim`.
-
+- [cargo-mutants](https://github.com/sourcefrog/cargo-mutants )
+- [vim-themis](https://github.com/thinca/vim-themis ) is used for unit tests.
+- [rhysd/action-setup-vim](https://github.com/rhysd/action-setup-vim) for setting up `Vim`/`Neovim` in Github workflow.

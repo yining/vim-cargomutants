@@ -16,16 +16,22 @@ function! s:suite.test_locate_outcome_file()
   let l:proj_root = 'proj/root'
   let l:cases = [
         \ ['',
-        \   'proj/root/mutants.out/outcomes.json'
+        \  'proj/root/mutants.out/outcomes.json'
         \ ],
         \ ['-o foo',
-        \   'proj/root/foo/mutants.out/outcomes.json'
+        \  'proj/root/foo/mutants.out/outcomes.json'
         \ ],
         \ ['--output foo',
-        \   'proj/root/foo/mutants.out/outcomes.json'
+        \  'proj/root/foo/mutants.out/outcomes.json'
+        \ ],
+        \ ['--output foo\ bar -j 4',
+        \  'proj/root/foo\ bar/mutants.out/outcomes.json'
+        \ ],
+        \ ['--output "foo bar" -j 4',
+        \  'proj/root/foo bar/mutants.out/outcomes.json'
         \ ],
         \ ['-j 4 --output foo',
-        \   'proj/root/foo/mutants.out/outcomes.json'
+        \  'proj/root/foo/mutants.out/outcomes.json'
         \ ],
         \ ]
   let l:failed = 0

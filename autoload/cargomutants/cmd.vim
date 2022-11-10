@@ -1,26 +1,21 @@
 let s:saved_cpo = &cpoptions
 set cpoptions&vim
 
-" TODO: a flag to toggle echo in on_out/on_error for debug purpose
-"
-" ----------------------------------------------------------------------
-" Running `cargo mutants` command
-"
+
 function! cargomutants#cmd#run_mutants_tests(...) abort
-  let l:file = ''
   let l:file_relpath = ''
   let l:root_dir = cargomutants#utils#find_proj_root_dir()
   " TODO: if root_dir not found
   if a:0 > 0
+    " NOTE: -f, --file FILE: Mutate only functions in files matching the
+    "  given name or glob. If the glob contains / it matches against
+    "  the path from the source tree root;
+    "  otherwise it matches only against the file name.
     let l:bufnr = a:1
-    let l:file = expand('#'.l:bufnr.':p')
-    " let l:file = resolve(join([expand('%:p:h'), a:1], '/'))
-    " TODO: check if file exists
-    let l:file_relpath = substitute(l:file, l:root_dir . '/', '', '')
+    let l:file_path = expand('#'.l:bufnr.':p')
+    let l:file_relpath = substitute(l:file_path, l:root_dir.'/', '', '')
   endif
   let l:cmd = s:build_command(l:root_dir, l:file_relpath)
-  echom 'running: ' . join(l:cmd, ' ')
-  " TODO: notify ale this linter is running (if integration of ale is enabled)
   let s:job = job_start(l:cmd, {
         \ 'close_cb': 'cargomutants#cmd#on_close',
         \ 'out_cb': 'cargomutants#cmd#on_out',
@@ -28,13 +23,16 @@ function! cargomutants#cmd#run_mutants_tests(...) abort
         \ })
 endfunction
 
+
 function! cargomutants#cmd#on_out(channel, msg) abort
-  echom a:msg
+  " echom a:msg
 endfunction
+
 
 function! cargomutants#cmd#on_error(channel, msg) abort
   echoe 'on_error: '. a:msg
 endfunction
+
 
 function! cargomutants#cmd#on_close(channel) abort
   while ch_status(a:channel, {'part': 'out'}) ==# 'buffered'
@@ -48,6 +46,8 @@ function! cargomutants#cmd#on_close(channel) abort
   if l:job_info['exitval'] == 0
     echom 'No uncaught mutations found' | return
   endif
+  " cargo-mutants exit code:
+  " https://github.com/sourcefrog/cargo-mutants#exit-codes
   if l:job_info['exitval'] >=1 && l:job_info['exitval'] <= 4
     if cargomutants#ale#enabled()
       let l:mutants = cargomutants#get_mutant_list()
@@ -56,8 +56,12 @@ function! cargomutants#cmd#on_close(channel) abort
     else
       call cargomutants#list_mutants()
     endif
+    call cargomutants#show_stats()
+  else
+    " TODO: handle unknown exit code
   endif
 endfunction
+
 
 function! s:build_command(proj_root, file) abort
   let l:cargo_bin   = get(g:, 'cargomutants_cargo_bin', 'cargo')

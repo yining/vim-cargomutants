@@ -3,14 +3,15 @@ set cpoptions&vim
 
 let s:ale_source_name = get(g:, 'cargomutants_ale_source_name', 'cargomutants')
 
+
 function! cargomutants#ale#setup_integration(bufnr) abort
   if cargomutants#ale#enabled() && !s:is_active_linter()
     let g:ale_linters['rust'] += [s:ale_source_name]
   endif
 endfunction
 
+
 function! cargomutants#ale#on_ale_want_results(bufnr) abort
-  " echom 'on_ale_want_results'
   if !s:is_active_linter() | return | endif
 
   let l:buf_file = expand('#' . a:bufnr . ':p')
@@ -45,7 +46,7 @@ function! cargomutants#ale#show_results(bufnr, mutants) abort
 endfunction
 
 
-" returns v:true if ale is enabled and we want to integrate, v:false otherwise
+" returns 1 if ale is enabled and we want to integrate, 0 otherwise
 function! cargomutants#ale#enabled() abort
   return get(b:, 'ale_enabled', get(g:, 'ale_enabled', 0)) &&
         \ get(g:, 'cargomutants_ale_enabled', 0)

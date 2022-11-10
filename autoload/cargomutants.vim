@@ -9,6 +9,9 @@ function! cargomutants#get_mutant_list()abort
 endfunction
 
 
+" if no argument given, list mutants of the current buffer
+" if argument is `v:null`, list all mutants
+" if argument is a string, list all mutants in files with name matching the string
 function! cargomutants#list_mutants(...)abort
   let l:mutants = cargomutants#get_mutant_list()
   let l:file = ''
@@ -28,11 +31,13 @@ function! cargomutants#list_mutants(...)abort
     lopen
     " set focus back to window
     exec bufwinnr(l:buf) . 'wincmd w'
+  else
+    echo 'No uncaught mutants found'
   endif
 endfunction
 
 
-" filters list of mutants that only for given file
+" filters list of mutants with file name matching given file
 function! cargomutants#filter_mutants_of_file(mutants, file) abort
   let l:fullpath = fnamemodify(a:file, ':p')
   let l:filtered = filter(a:mutants, {k, v -> v.filename ==# l:fullpath})
