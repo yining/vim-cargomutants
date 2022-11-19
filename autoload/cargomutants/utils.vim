@@ -10,6 +10,7 @@ function! cargomutants#utils#find_proj_root_dir(...) abort
         \ '%s locate-project --workspace --message-format=plain --quiet --color=never',
         \ get(g:, 'cargomutants_cargo_bin', 'cargo'))
   let l:cmd = join(['cd '.l:dir, l:cmd_list], ' && ')
+  " echom l:cmd
   let l:output = systemlist(l:cmd)
   if v:shell_error
     " echom 'cargo: can not find project root'
@@ -26,6 +27,9 @@ endfunction
 
 " Returns full path of directory of current file name (which may be a directory).
 function! s:current() abort
+  " NOTE: due to the issue, this does not work properly in vscode
+  " [Current file name in % register is invalid - Issue #798](https://github.com/vscode-neovim/vscode-neovim/issues/798 )
+  if exists('g:vscode') | return getcwd() | endif
   let l:fn = expand('%:p', 1)
   if l:fn =~# 'NERD_tree_\d\+$' | let l:fn = b:NERDTree.root.path.str().'/' | endif
   if empty(l:fn) | return getcwd() | endif  " opening vim without a file

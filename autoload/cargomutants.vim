@@ -26,11 +26,19 @@ function! cargomutants#list_mutants(...)abort
     let l:mutants = cargomutants#filter_mutants_of_file(l:mutants, l:file)
   endif
   if len(l:mutants) > 0
-    let l:buf = bufname('%')
-    call setloclist(0, l:mutants, 'r')
-    lopen
-    " set focus back to window
-    exec bufwinnr(l:buf) . 'wincmd w'
+    if !exists('g:vscode')
+      let l:buf = bufname('%')
+      call setloclist(0, l:mutants, 'r')
+      lopen
+      " set focus back to window
+      exec bufwinnr(l:buf) . 'wincmd w'
+    else
+      " print list of uncaught mutants to vscode-neovim output pane
+      for l:m in l:mutants
+        echo printf('%s:%d: %s',
+              \ l:m['filename'], l:m['lnum'], l:m['text'])
+      endfor
+    endif
   else
     echo 'No uncaught mutants found'
   endif
@@ -49,9 +57,9 @@ endfunction
 function! cargomutants#show_stats() abort
   let l:stats = cargomutants#outcomes#get_stats()
   if empty(l:stats)
-    echom 'No mutation stats found (most likely an error)'
+    echom 'No mutation stats found (most likely an error)' | return
   endif
-  if l:stats.total == 0
+  if l:stats['total'] == 0
     echom 'Mutation Total: 0'
   else
     let l:f = 'Mutation Total: %d, Missed: %d(%.3s%%), Caught: %d(%.3s%%), Unviable: %d(%.3s%%), Timeout: %d(%.3s%%)'
@@ -97,8 +105,10 @@ function! cargomutants#view_mutant_diff() abort
   " echom l:outcome_key
   let l:mut_diff_file = cargomutants#outcomes#get_logfile_path(l:outcome_key)
 
-  if !empty(l:mut_diff_file)
+  if filereadable(l:mut_diff_file)
     silent! call win_execute(l:wins[0], 'vertical diffpatch ' . l:mut_diff_file)
+  else
+    echom printf('diff file for mutation not readable: %s', l:mut_diff_file)
   endif
 
 endfunction

@@ -16,39 +16,69 @@ function! cargomutants#cmd#run_mutants_tests(...) abort
     let l:file_relpath = substitute(l:file_path, l:root_dir.'/', '', '')
   endif
   let l:cmd = s:build_command(l:root_dir, l:file_relpath)
-  let s:job = job_start(l:cmd, {
-        \ 'close_cb': 'cargomutants#cmd#on_close',
-        \ 'out_cb': 'cargomutants#cmd#on_out',
-        \ 'err_cb': 'cargomutants#cmd#on_error'
-        \ })
+
+  echom 'Running cargo-mutants... '
+
+  if has('nvim')
+    let s:job = jobstart(l:cmd, {
+          \ 'on_exit': 'cargomutants#cmd#on_nvim_job_event',
+          \ 'on_stdout': 'cargomutants#cmd#on_nvim_job_event',
+          \ 'on_stderr': 'cargomutants#cmd#on_nvim_job_event'
+          \ })
+  else
+    let s:job = job_start(l:cmd, {
+          \ 'close_cb': 'cargomutants#cmd#on_vim_job_close',
+          \ 'out_cb': 'cargomutants#cmd#on_vim_job_out',
+          \ 'err_cb': 'cargomutants#cmd#on_vim_job_error'
+          \ })
+  endif
 endfunction
 
 
-function! cargomutants#cmd#on_out(channel, msg) abort
+function! cargomutants#cmd#on_nvim_job_event(job_id, data, event) abort
+  if a:event ==# 'stdout'
+    " echom 'Cargo-mutants output: ' . join(a:data)
+  elseif a:event ==# 'stderr'
+    " echoe 'Cargo-mutants error: ' . join(a:data)
+  else
+    " job exits
+    call cargomutants#cmd#on_cargomutants_exit(a:data)
+  endif
+endfunction
+
+
+function! cargomutants#cmd#on_vim_job_out(channel, msg) abort
   " echom a:msg
 endfunction
 
 
-function! cargomutants#cmd#on_error(channel, msg) abort
-  echoe 'on_error: '. a:msg
+function! cargomutants#cmd#on_vim_job_error(channel, msg) abort
+  echoe 'Cargo-mutants error: ' . a:msg
 endfunction
 
 
-function! cargomutants#cmd#on_close(channel) abort
+function! cargomutants#cmd#on_vim_job_close(channel) abort
   while ch_status(a:channel, {'part': 'out'}) ==# 'buffered'
     let l:msg = ch_read(a:channel)
   endwhile
-  " echom job_info(s:job)
+
   let l:job_info = job_info(s:job)
   if l:job_info['status'] !=# 'dead'
     return
   endif
-  if l:job_info['exitval'] == 0
-    echom 'No uncaught mutations found' | return
-  endif
-  " cargo-mutants exit code:
-  " https://github.com/sourcefrog/cargo-mutants#exit-codes
-  if l:job_info['exitval'] >=1 && l:job_info['exitval'] <= 4
+
+  call cargomutants#cmd#on_cargomutants_exit(l:job_info['exitval'])
+endfunction
+
+
+" this function is called by both `on_nvim_job_event()` and
+" `on_vim_job_close()`
+" cargo-mutants exit code:
+" https://github.com/sourcefrog/cargo-mutants#exit-codes
+function! cargomutants#cmd#on_cargomutants_exit(exitcode) abort
+  if a:exitcode == 0
+    echom 'No uncaught mutations found'
+  elseif a:exitcode >=1 && a:exitcode <= 4
     if cargomutants#ale#enabled()
       let l:mutants = cargomutants#get_mutant_list()
       let l:mutants = cargomutants#filter_mutants_of_file(l:mutants, expand('%:p'))
@@ -58,7 +88,7 @@ function! cargomutants#cmd#on_close(channel) abort
     endif
     call cargomutants#show_stats()
   else
-    " TODO: handle unknown exit code
+    echom printf('Unknown exit code from cargo-mutants: %s', a:exitcode)
   endif
 endfunction
 

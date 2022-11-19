@@ -179,7 +179,7 @@ function! cargomutants#outcomes#get_stats()abort
         \ b:cargomutants_root_dir, g:cargomutants_cmd_opts )
   if !filereadable(l:json_file)
     " No cargo-mutants outcomes.json found
-    return {}
+    return v:null
   endif
   let l:json = json_decode(join(readfile(l:json_file), ''))
   let l:stats = {
