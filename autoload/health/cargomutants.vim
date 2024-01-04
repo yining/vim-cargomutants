@@ -3,7 +3,7 @@ set cpoptions&vim
 
 
 function! health#cargomutants#check() abort
-  call health#report_start('sanity checks')
+  call v:lua.vim.health.start('sanity checks')
 
   let l:cargo_bin = get(g:, 'cargomutants_cargo_bin', 'cargo')
 
@@ -13,17 +13,17 @@ function! health#cargomutants#check() abort
   let l:output = systemlist(l:cmd)
 
   if v:shell_error
-    call health#report_error('cargo-mutants command not found',
+    call v:lua.vim.health.error('cargo-mutants command not found',
           \ ['install cargo and cargo-mutants',
           \  'also check and set g:cargomutants_cargo_bin'])
   else
-    call health#report_ok(printf('`%s mutants` command available', l:cargo_bin))
+    call v:lua.vim.health.ok(printf('`%s mutants` command available', l:cargo_bin))
   endif
 
   let l:cargomutants_ale_enabled = get(g:, 'cargomutants_ale_enabled', 0)
   let l:ale_enabled = get(g:, 'ale_enabled', 0)
   if !l:ale_enabled && l:cargomutants_ale_enabled
-    call health#report_error(printf('ALE seems disabled (g:ale_enabled==0), yet g:cargomutants_ale_enabled == 1'))
+    call v:lua.vim.health.error(printf('ALE seems disabled (g:ale_enabled==0), yet g:cargomutants_ale_enabled == 1'))
   endif
 
 endfunction
